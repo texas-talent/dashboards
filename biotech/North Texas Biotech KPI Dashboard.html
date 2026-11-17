@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>North Texas Biotech KPI Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f4;--surf:#fff;--ink:#12222d;--mut:#566673;--line:#d5dde2;--dfw:#0b7a75;--sd:#7a4fc0;--gold:#a56a0a;--up:#1b7a43;--dn:#b8342f;--soft:#e3f0ef;
+ --f:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--s:'Newsreader',Georgia,serif;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a21;--surf:#16252e;--ink:#e6eef2;--mut:#9fb2be;--line:#2a3d48;--dfw:#3cc2b9;--sd:#b39af5;--gold:#e0a84a;--up:#4cc784;--dn:#f0716d;--soft:#17353a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1a21;--surf:#16252e;--ink:#e6eef2;--mut:#9fb2be;--line:#2a3d48;--dfw:#3cc2b9;--sd:#b39af5;--gold:#e0a84a;--up:#4cc784;--dn:#f0716d;--soft:#17353a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f);font-variant-numeric:tabular-nums}
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px 56px}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:14px 0 10px;border-bottom:1px solid var(--line);margin-bottom:14px}
+h1{font:600 clamp(22px,3.2vw,32px)/1.15 var(--s);margin:0 0 2px}
+h2{font:600 19px/1.25 var(--s);margin:0 0 2px}
+h3{font:600 14px/1.3 var(--f);margin:0 0 6px}
+.sub{color:var(--mut);margin:0;font-size:13.5px;max-width:90ch}
+.filters{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.filters label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);font-weight:600;gap:3px}
+select{font:500 14px var(--f);padding:8px 28px 8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--ink);min-width:150px}
+select:focus-visible,button:focus-visible,input:focus-visible,th:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.reset{align-self:flex-end;font:600 13px var(--f);padding:9px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--ink);cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin-bottom:14px}
+.k{background:var(--surf);border:1px solid var(--line);border-top:4px solid var(--dfw);border-radius:8px;padding:10px 12px}
+.k span{font-size:12.5px;color:var(--mut);display:block;min-height:34px}
+.k b{display:block;font:600 28px/1.15 var(--s)}
+.k em{font-style:normal;font-size:12.5px;font-weight:600}
+.up{color:var(--up)}.dn{color:var(--dn)}.fl{color:var(--mut)}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-bottom:14px}
+.sum div{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.sum p{margin:0;font-size:14px}
+.panel{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g2>.panel{margin:0}
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--mut);margin:2px 0 6px}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+svg{width:100%;height:auto;display:block}
+.rd{font-size:12.5px;color:var(--mut);min-height:19px}
+.note{font-size:12px;color:var(--mut);margin:6px 0 0}
+.br{display:grid;grid-template-columns:minmax(110px,170px) 1fr minmax(88px,auto);gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.bt{height:16px;background:var(--line);border-radius:3px;display:flex;overflow:hidden}
+.bt i{display:block;height:100%}
+.br b{text-align:right;font-weight:600}
+.act{background:var(--soft);border-left:5px solid var(--dfw);border-radius:8px;padding:12px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.act ul,.act ol{margin:4px 0 0;padding-left:18px;font-size:14px}.act li{margin:4px 0}
+.tx{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.tx div{border:1px solid var(--line);border-radius:8px;padding:8px 11px}.tx b{display:block;font:600 21px var(--s)}.tx span{font-size:12.5px;color:var(--mut)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:nth-child(-n+2),td:nth-child(-n+2){text-align:left}
+th{font-weight:600;color:var(--mut);cursor:pointer;user-select:none}
+.scroll{overflow-x:auto}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+input[type=search]{font:14px var(--f);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);flex:1;min-width:200px}
+.btn{font:600 13px var(--f);padding:8px 14px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer}
+.pg{display:flex;gap:10px;align-items:center;margin-top:8px;font-size:13px;color:var(--mut)}
+.pg button{padding:5px 12px;border:1px solid var(--line);background:var(--surf);color:var(--ink);border-radius:6px;cursor:pointer}.pg button:disabled{opacity:.4}
+textarea{width:100%;height:130px;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px}
+@media(max-width:860px){.g2,.act{grid-template-columns:1fr}.bar{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="bar">
+ <h1>North Texas biotech labs and R&amp;D: KPI dashboard</h1>
+ <p class="sub">Employment, establishments and pay in five core R&amp;D and laboratory industries, 2001–2036. Source: Lightcast 2026.3 (actuals to 2025, projections 2026–2036); Texas context from TEConomy/BIO 2026.</p>
+ <div class="filters" id="filters"></div>
+</header>
+
+<section class="kpis" id="kpis" aria-label="Key measures"></section>
+<section class="sum" id="sum" aria-label="Topic summaries"></section>
+
+<section class="panel">
+ <h2 id="t1"></h2>
+ <p class="sub">Each market has its own scale, so the two are not drawn on one axis. Dashed gold = Lightcast projection.</p>
+ <div class="g2" id="lvl" style="margin-top:8px"></div>
+</section>
+
+<div class="g2" style="margin-bottom:14px">
+ <section class="panel"><h2>Growth index (start year = 100)</h2><p class="sub">Same start point for both markets; compares speed, not size.</p><div class="leg" id="lg1"></div><div id="c-idx"></div><div class="rd" id="r-idx"></div></section>
+ <section class="panel"><h2>Jobs per establishment</h2><p class="sub">Falling value = more, smaller operators. Establishment data cover 2004–2025.</p><div class="leg" id="lg2"></div><div id="c-sz"></div><div class="rd" id="r-sz"></div></section>
+</div>
+
+<div class="g2" style="margin-bottom:14px">
+ <section class="panel"><h2 id="t3"></h2><p class="sub">Ranked by jobs in the end year. Right column: change versus start year.</p><div id="rank"></div></section>
+ <section class="panel"><h2>Net new jobs, 2025 to 2036</h2><p class="sub">Projected change, ranked. Jobs.</p><div id="net"></div><p class="note" id="netnote"></p></section>
+</div>
+
+<section class="panel">
+ <h2>Earnings per worker, 2025</h2>
+ <p class="sub">Bar = wages plus employer benefit supplements (US dollars a year). Right column = earnings adjusted for cost of living (COL index: DFW 99.1, Sherman–Denison 93.9).</p>
+ <div class="leg"><span><i style="background:var(--dfw)"></i>DFW wages</span><span><i style="background:var(--sd)"></i>Sherman–Denison wages</span><span><i style="background:var(--gold);opacity:.7"></i>Supplements (both)</span></div>
+ <div id="pay"></div>
+</section>
+
+<section class="act" id="act" aria-live="polite"></section>
+
+<section class="panel"><h2>Texas context (TEConomy/BIO 2026)</h2><div class="tx" id="tx"></div>
+<p class="note">TEConomy counts only the life-science share of some codes, so its DFW research, testing and lab figure (10,114) is below the raw Lightcast total. Compare trends, not levels.</p></section>
+
+<section class="panel">
+ <h2>Data explorer</h2><p class="sub" id="exsub"></p>
+ <div class="ctl"><input type="search" id="q" placeholder="Search rows" aria-label="Search rows"><button class="btn" id="exp">Export CSV</button></div>
+ <div id="csvbox" hidden><p class="note">If no save prompt appeared, copy the CSV below.</p><textarea id="csvta" readonly></textarea></div>
+ <div class="scroll"><table id="ex"></table></div>
+ <div class="pg"><button id="pp">Previous</button><span id="pi"></span><button id="pn">Next</button></div>
+</section>
+</div>
+
+<script>
+const RAW=[[19100,541380,2001,1629.423,54634.477,7150.922,47483.555,0.549,null,null,null],[19100,541380,2002,1590.513,60310.77,8310.703,52000.068,0.53,null,null,null],[19100,541380,2003,1702.852,60230.584,8377.099,51853.485,0.581,null,null,null],[19100,541380,2004,1620.188,60510.72,7988.096,52522.624,0.56,null,null,165.5],[19100,541380,2005,1598.47,60820.075,8396.151,52423.924,0.547,null,null,163.75],[19100,541380,2006,1693.219,61796.808,8578.787,53218.021,0.557,null,null,160.75],[19100,541380,2007,1886.347,67134.412,8773.287,58361.125,0.588,null,null,167.0],[19100,541380,2008,1894.06,66171.545,8514.734,57656.811,0.584,null,null,153.5],[19100,541380,2009,1891.88,66032.583,8887.778,57144.805,0.6,null,null,151.25],[19100,541380,2010,1742.533,68062.772,8742.961,59319.811,0.551,null,null,152.5],[19100,541380,2011,1924.893,69244.801,9002.917,60241.884,0.57,null,null,163.25],[19100,541380,2012,1971.843,68940.775,8741.456,60199.319,0.555,null,null,160.75],[19100,541380,2013,2133.368,73107.629,9425.355,63682.274,0.585,null,null,167.5],[19100,541380,2014,2333.345,75796.203,9515.856,66280.347,0.603,null,null,166.25],[19100,541380,2015,2569.66,76865.805,9705.475,67160.33,0.673,null,null,173.0],[19100,541380,2016,2545.527,75246.765,9357.323,65889.441,0.651,null,null,175.25],[19100,541380,2017,2392.387,81434.138,10570.535,70863.603,0.605,null,null,174.5],[19100,541380,2018,2649.337,82186.78,10711.74,71475.04,0.644,null,null,178.25],[19100,541380,2019,2825.418,81904.857,10936.706,70968.151,0.663,null,null,191.0],[19100,541380,2020,2899.04,78850.856,9849.354,69001.503,0.675,null,null,190.5],[19100,541380,2021,3124.725,80580.269,9809.535,70770.734,0.71,null,null,204.75],[19100,541380,2022,3347.317,84942.025,10271.129,74670.896,0.736,null,null,210.0],[19100,541380,2023,3066.366,92114.696,11358.551,80756.145,0.678,null,null,209.75],[19100,541380,2024,3327.752,94078.814,11548.611,82530.203,0.734,null,null,207.5],[19100,541380,2025,3525.663,99835.09,12255.221,87579.87,0.77,99.1,100741.766,208.75],[19100,541380,2026,3653.515,null,null,null,0.783,null,null,null],[19100,541380,2027,3760.379,null,null,null,0.794,null,null,null],[19100,541380,2028,3852.59,null,null,null,0.803,null,null,null],[19100,541380,2029,3933.994,null,null,null,0.811,null,null,null],[19100,541380,2030,3985.856,null,null,null,0.815,null,null,null],[19100,541380,2031,4056.735,null,null,null,0.821,null,null,null],[19100,541380,2032,4121.499,null,null,null,0.827,null,null,null],[19100,541380,2033,4180.737,null,null,null,0.832,null,null,null],[19100,541380,2034,4234.979,null,null,null,0.836,null,null,null],[19100,541380,2035,4284.706,null,null,null,0.84,null,null,null],[19100,541380,2036,4330.351,null,null,null,0.843,null,null,null],[19100,541713,2001,410.933,90605.362,11859.03,78746.332,1.047,null,null,null],[19100,541713,2002,458.563,85872.15,11833.009,74039.141,1.178,null,null,null],[19100,541713,2003,391.932,88154.771,12260.901,75893.87,1.008,null,null,null],[19100,541713,2004,431.162,90045.63,11887.037,78158.593,1.078,null,null,22.19],[19100,541713,2005,394.514,102523.944,14153.329,88370.614,0.921,null,null,20.52],[19100,541713,2006,391.027,106059.56,14723.452,91336.107,0.853,null,null,20.353],[19100,541713,2007,304.243,124200.316,16230.797,107969.519,0.658,null,null,17.041],[19100,541713,2008,611.011,119972.904,15437.713,104535.191,1.251,null,null,24.88],[19100,541713,2009,749.337,122821.948,16531.448,106290.5,1.541,null,null,35.181],[19100,541713,2010,908.273,114145.575,14662.498,99483.077,1.811,null,null,37.918],[19100,541713,2011,1097.786,113623.179,14772.806,98850.373,2.142,null,null,43.566],[19100,541713,2012,1039.539,115996.398,14707.95,101288.448,2.003,null,null,44.673],[19100,541713,2013,931.55,118025.472,15216.359,102809.113,1.791,null,null,46.571],[19100,541713,2014,962.708,118294.008,14851.255,103442.753,1.826,null,null,47.73],[19100,541713,2015,914.524,127558.116,16106.149,111451.967,1.661,null,null,46.362],[19100,541713,2016,1050.751,128981.108,16039.466,112941.641,1.86,null,null,56.442],[19100,541713,2017,1085.725,144556.467,18764.111,125792.355,2.118,null,null,60.25],[19100,541713,2018,133.554,127053.605,16559.417,110494.188,0.28,null,null,49.5],[19100,541713,2019,212.857,131095.117,17505.052,113590.065,0.455,null,null,50.0],[19100,541713,2020,194.172,169965.562,21230.6,148734.963,0.357,null,null,57.25],[19100,541713,2021,254.214,163853.756,19946.932,143906.824,0.414,null,null,68.25],[19100,541713,2022,216.823,180716.717,21852.137,158864.58,0.334,null,null,55.75],[19100,541713,2023,217.558,177848.728,21930.309,155918.419,0.332,null,null,51.0],[19100,541713,2024,263.604,168311.354,20661.0,147650.354,0.429,null,null,43.5],[19100,541713,2025,279.663,186314.22,22870.935,163443.285,0.493,99.1,188006.277,36.5],[19100,541713,2026,272.082,null,null,null,0.463,null,null,null],[19100,541713,2027,265.601,null,null,null,0.44,null,null,null],[19100,541713,2028,259.884,null,null,null,0.421,null,null,null],[19100,541713,2029,254.725,null,null,null,0.406,null,null,null],[19100,541713,2030,251.12,null,null,null,0.397,null,null,null],[19100,541713,2031,247.171,null,null,null,0.384,null,null,null],[19100,541713,2032,243.467,null,null,null,0.373,null,null,null],[19100,541713,2033,239.985,null,null,null,0.363,null,null,null],[19100,541713,2034,236.699,null,null,null,0.354,null,null,null],[19100,541713,2035,233.592,null,null,null,0.346,null,null,null],[19100,541713,2036,230.643,null,null,null,0.34,null,null,null],[19100,541714,2001,948.463,88743.338,11615.316,77128.022,0.392,null,null,null],[19100,541714,2002,985.408,84775.583,11681.904,73093.678,0.413,null,null,null],[19100,541714,2003,973.148,88688.093,12335.077,76353.015,0.408,null,null,null],[19100,541714,2004,956.251,90885.43,11997.9,78887.531,0.391,null,null,59.329],[19100,541714,2005,873.256,102784.266,14189.267,88594.999,0.335,null,null,58.468],[19100,541714,2006,883.176,106615.5,14800.629,91814.871,0.316,null,null,56.449],[19100,541714,2007,963.929,83532.42,10916.218,72616.202,0.339,null,null,58.494],[19100,541714,2008,1077.026,88768.099,11422.383,77345.716,0.355,null,null,63.999],[19100,541714,2009,1082.234,87355.401,11757.762,75597.639,0.359,null,null,70.0],[19100,541714,2010,1008.567,104005.485,13359.959,90645.526,0.34,null,null,63.996],[19100,541714,2011,997.046,119921.984,15591.75,104330.234,0.325,null,null,64.244],[19100,541714,2012,1284.27,128448.467,16286.83,112161.637,0.412,null,null,69.22],[19100,541714,2013,1274.371,110449.115,14239.582,96209.533,0.397,null,null,74.746],[19100,541714,2014,1234.111,100567.649,12625.794,87941.855,0.37,null,null,79.72],[19100,541714,2015,1273.098,103147.622,13023.953,90123.669,0.347,null,null,76.797],[19100,541714,2016,1338.368,104566.102,13003.334,91562.768,0.334,null,null,83.974],[19100,541714,2017,1412.355,110678.272,14366.562,96311.711,0.329,null,null,70.0],[19100,541714,2018,1444.689,111826.541,14574.811,97251.73,0.312,null,null,78.5],[19100,541714,2019,1528.625,167711.169,22394.371,145316.797,0.293,null,null,84.25],[19100,541714,2020,1594.939,163251.767,20391.972,142859.796,0.279,null,null,92.5],[19100,541714,2021,1813.12,149637.644,18216.317,131421.327,0.283,null,null,121.75],[19100,541714,2022,1975.151,141639.291,17126.922,124512.369,0.274,null,null,142.5],[19100,541714,2023,2103.913,307246.046,37886.135,269359.911,0.28,null,null,152.75],[19100,541714,2024,2020.554,159345.753,19560.431,139785.322,0.273,null,null,174.5],[19100,541714,2025,1960.929,164469.17,20189.354,144279.816,0.265,99.1,165962.835,165.25],[19100,541714,2026,2013.818,null,null,null,0.261,null,null,null],[19100,541714,2027,2055.431,null,null,null,0.257,null,null,null],[19100,541714,2028,2089.14,null,null,null,0.255,null,null,null],[19100,541714,2029,2116.993,null,null,null,0.253,null,null,null],[19100,541714,2030,2129.016,null,null,null,0.251,null,null,null],[19100,541714,2031,2151.043,null,null,null,0.249,null,null,null],[19100,541714,2032,2169.715,null,null,null,0.247,null,null,null],[19100,541714,2033,2185.343,null,null,null,0.246,null,null,null],[19100,541714,2034,2198.211,null,null,null,0.245,null,null,null],[19100,541714,2035,2208.575,null,null,null,0.243,null,null,null],[19100,541714,2036,2216.664,null,null,null,0.242,null,null,null],[19100,541715,2001,900.093,81079.327,10612.199,70467.128,0.131,null,null,null],[19100,541715,2002,817.867,80099.944,11037.611,69062.333,0.121,null,null,null],[19100,541715,2003,898.61,89934.68,12508.457,77426.223,0.133,null,null,null],[19100,541715,2004,979.484,92895.756,12263.285,80632.471,0.141,null,null,64.691],[19100,541715,2005,1108.336,97384.438,13443.826,83940.612,0.149,null,null,64.451],[19100,541715,2006,1166.681,101870.88,14141.969,87728.91,0.147,null,null,73.187],[19100,541715,2007,1246.863,112154.256,14656.589,97497.667,0.155,null,null,73.209],[19100,541715,2008,1498.87,109861.326,14136.589,95724.737,0.175,null,null,76.346],[19100,541715,2009,1598.689,117118.403,15763.769,101354.634,0.187,null,null,82.541],[19100,541715,2010,1818.865,115375.43,14820.479,100554.952,0.205,null,null,85.491],[19100,541715,2011,1993.315,118981.94,15469.53,103512.411,0.218,null,null,79.684],[19100,541715,2012,1439.91,129806.811,16459.063,113347.748,0.155,null,null,91.573],[19100,541715,2013,1426.793,132705.988,17109.035,115596.953,0.154,null,null,102.429],[19100,541715,2014,1404.27,129685.124,16281.356,113403.768,0.15,null,null,107.027],[19100,541715,2015,1577.759,135983.267,17169.952,118813.315,0.161,null,null,120.888],[19100,541715,2016,1588.273,139959.231,17404.652,122554.579,0.157,null,null,125.058],[19100,541715,2017,1325.075,130382.382,16924.248,113458.133,0.142,null,null,120.25],[19100,541715,2018,1390.779,138613.223,18066.029,120547.193,0.14,null,null,145.0],[19100,541715,2019,1540.125,187934.235,25094.745,162839.49,0.146,null,null,153.5],[19100,541715,2020,1680.838,144365.378,18032.85,126332.528,0.148,null,null,167.0],[19100,541715,2021,2022.058,149832.719,18240.065,131592.655,0.165,null,null,193.0],[19100,541715,2022,2595.648,151852.023,18361.838,133490.184,0.196,null,null,228.5],[19100,541715,2023,2594.781,151812.473,18719.811,133092.663,0.186,null,null,251.5],[19100,541715,2024,2742.322,182472.868,22399.391,160073.477,0.194,null,null,256.5],[19100,541715,2025,3028.156,166898.137,20487.521,146410.616,0.212,99.1,168413.862,273.0],[19100,541715,2026,3177.693,null,null,null,0.215,null,null,null],[19100,541715,2027,3297.646,null,null,null,0.218,null,null,null],[19100,541715,2028,3396.895,null,null,null,0.22,null,null,null],[19100,541715,2029,3480.837,null,null,null,0.222,null,null,null],[19100,541715,2030,3523.199,null,null,null,0.222,null,null,null],[19100,541715,2031,3591.951,null,null,null,0.224,null,null,null],[19100,541715,2032,3651.986,null,null,null,0.225,null,null,null],[19100,541715,2033,3704.127,null,null,null,0.226,null,null,null],[19100,541715,2034,3749.118,null,null,null,0.227,null,null,null],[19100,541715,2035,3787.631,null,null,null,0.227,null,null,null],[19100,541715,2036,3820.274,null,null,null,0.228,null,null,null],[19100,621511,2001,1983.896,58747.909,9935.571,48812.337,0.771,null,null,null],[19100,621511,2002,2195.34,61263.196,10674.028,50589.168,0.841,null,null,null],[19100,621511,2003,2141.696,64386.86,11812.61,52574.25,0.82,null,null,null],[19100,621511,2004,2373.62,64583.518,12071.031,52512.486,0.868,null,null,100.75],[19100,621511,2005,2483.953,62912.017,11654.238,51257.779,0.884,null,null,106.0],[19100,621511,2006,2800.983,68243.443,12989.576,55253.867,0.955,null,null,99.5],[19100,621511,2007,2843.948,74273.096,13374.857,60898.239,0.928,null,null,105.75],[19100,621511,2008,2881.584,70940.538,12464.204,58476.334,0.896,null,null,116.75],[19100,621511,2009,2914.873,73063.928,12932.224,60131.704,0.885,null,null,144.5],[19100,621511,2010,2981.148,74093.19,13687.081,60406.109,0.85,null,null,163.5],[19100,621511,2011,3178.164,72609.866,12602.631,60007.235,0.874,null,null,173.5],[19100,621511,2012,3111.583,74556.823,12846.403,61710.42,0.826,null,null,174.5],[19100,621511,2013,3686.73,72613.47,13167.777,59445.693,0.925,null,null,189.75],[19100,621511,2014,3855.628,70702.549,12355.097,58347.452,0.921,null,null,206.75],[19100,621511,2015,4361.096,72228.926,12231.366,59997.559,0.986,null,null,236.25],[19100,621511,2016,4778.991,73007.296,12718.443,60288.853,1.046,null,null,257.75],[19100,621511,2017,4342.764,76002.945,13175.537,62827.408,0.927,null,null,268.75],[19100,621511,2018,4190.656,79105.649,14353.605,64752.045,0.871,null,null,253.75],[19100,621511,2019,5255.411,76845.07,13890.194,62954.876,1.051,null,null,240.25],[19100,621511,2020,5471.485,80863.465,14563.721,66299.745,1.056,null,null,247.0],[19100,621511,2021,6235.984,87101.388,15154.32,71947.068,1.087,null,null,262.75],[19100,621511,2022,6599.379,91780.635,15017.136,76763.499,1.084,null,null,433.0],[19100,621511,2023,6940.914,101165.538,16280.142,84885.395,1.159,null,null,614.25],[19100,621511,2024,6777.477,98889.686,15754.913,83134.773,1.167,null,null,595.0],[19100,621511,2025,6887.506,103833.104,16542.489,87290.615,1.191,99.1,104776.089,573.5],[19100,621511,2026,7174.916,null,null,null,1.213,null,null,null],[19100,621511,2027,7410.6,null,null,null,1.23,null,null,null],[19100,621511,2028,7610.126,null,null,null,1.243,null,null,null],[19100,621511,2029,7782.953,null,null,null,1.255,null,null,null],[19100,621511,2030,7883.029,null,null,null,1.262,null,null,null],[19100,621511,2031,8029.605,null,null,null,1.271,null,null,null],[19100,621511,2032,8161.023,null,null,null,1.279,null,null,null],[19100,621511,2033,8278.728,null,null,null,1.286,null,null,null],[19100,621511,2034,8384.024,null,null,null,1.292,null,null,null],[19100,621511,2035,8478.09,null,null,null,1.298,null,null,null],[19100,621511,2036,8561.99,null,null,null,1.302,null,null,null],[43300,541380,2001,4.842,34892.396,4566.948,30325.448,0.104,null,null,null],[43300,541380,2002,4.71,40000.885,5512.041,34488.844,0.099,null,null,null],[43300,541380,2003,2.013,38048.349,5291.909,32756.44,0.043,null,null,null],[43300,541380,2004,2.115,34913.255,4608.943,30304.313,0.046,null,null,1.0],[43300,541380,2005,2.223,50796.669,7012.43,43784.239,0.049,null,null,1.0],[43300,541380,2006,2.459,44626.418,6195.151,38431.267,0.053,null,null,1.0],[43300,541380,2007,3.675,58697.088,7670.677,51026.41,0.078,null,null,1.0],[43300,541380,2008,4.338,39270.594,5053.209,34217.385,0.092,null,null,1.0],[43300,541380,2009,6.419,33245.547,4474.746,28770.801,0.137,null,null,1.0],[43300,541380,2010,6.987,24971.01,3207.635,21763.375,0.149,null,null,1.0],[43300,541380,2011,7.475,26586.486,3456.663,23129.823,0.151,null,null,1.75],[43300,541380,2012,6.527,25253.812,3202.098,22051.714,0.129,null,null,2.25],[43300,541380,2013,9.762,34515.247,4449.856,30065.39,0.188,null,null,1.75],[43300,541380,2014,7.21,36105.643,4532.893,31572.75,0.134,null,null,1.0],[43300,541380,2015,5.258,36913.527,4660.893,32252.634,0.1,null,null,1.0],[43300,541380,2016,1.952,52856.34,6572.959,46283.382,0.037,null,null,1.0],[43300,541380,2017,15.699,52670.557,6836.887,45833.67,0.297,null,null,1.0],[43300,541380,2018,10.25,67701.02,8823.751,58877.268,0.188,null,null,1.0],[43300,541380,2019,8.053,71744.29,9579.972,62164.318,0.143,null,null,1.0],[43300,541380,2020,11.991,67838.687,8473.811,59364.876,0.208,null,null,2.0],[43300,541380,2021,10.823,67786.306,8252.047,59534.259,0.186,null,null,2.0],[43300,541380,2022,9.149,64621.507,7813.987,56807.52,0.162,null,null,2.0],[43300,541380,2023,5.291,73746.712,9093.617,64653.095,0.09,null,null,1.0],[43300,541380,2024,3.984,66859.59,8207.325,58652.265,0.068,null,null,1.0],[43300,541380,2025,8.428,71099.022,8727.735,62371.287,0.14,93.9,75717.809,1.0],[43300,541380,2026,8.223,null,null,null,0.134,null,null,null],[43300,541380,2027,8.056,null,null,null,0.129,null,null,null],[43300,541380,2028,7.915,null,null,null,0.125,null,null,null],[43300,541380,2029,7.794,null,null,null,0.121,null,null,null],[43300,541380,2030,7.726,null,null,null,0.119,null,null,null],[43300,541380,2031,7.623,null,null,null,0.116,null,null,null],[43300,541380,2032,7.531,null,null,null,0.114,null,null,null],[43300,541380,2033,7.449,null,null,null,0.112,null,null,null],[43300,541380,2034,7.376,null,null,null,0.109,null,null,null],[43300,541380,2035,7.311,null,null,null,0.108,null,null,null],[43300,541380,2036,7.253,null,null,null,0.106,null,null,null],[43300,541713,2001,0.0,0.0,0.0,0.0,0.0,null,null,null],[43300,541713,2002,0.0,0.0,0.0,0.0,0.0,null,null,null],[43300,541713,2003,0.0,0.0,0.0,0.0,0.0,null,null,null],[43300,541713,2004,0.205,58209.348,7684.289,50525.059,0.032,null,null,0.09],[43300,541713,2005,0.298,55766.584,7698.522,48068.062,0.045,null,null,0.065],[43300,541713,2006,0.389,53385.297,7411.08,45974.217,0.056,null,null,0.07],[43300,541713,2007,0.37,54276.025,7092.922,47183.103,0.054,null,null,0.069],[43300,541713,2008,0.268,51523.185,6629.832,44893.354,0.038,null,null,0.025],[43300,541713,2009,0.148,49775.874,6699.676,43076.198,0.021,null,null,0.016],[43300,541713,2010,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2011,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2012,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2013,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2014,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2015,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2016,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2017,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2018,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2019,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2020,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2021,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2022,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2023,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2024,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541713,2025,0.0,0.0,0.0,0.0,0.0,93.9,0.0,0.0],[43300,541713,2026,0.0,null,null,null,0.0,null,null,null],[43300,541713,2027,0.0,null,null,null,0.0,null,null,null],[43300,541713,2028,0.0,null,null,null,0.0,null,null,null],[43300,541713,2029,0.0,null,null,null,0.0,null,null,null],[43300,541713,2030,0.0,null,null,null,0.0,null,null,null],[43300,541713,2031,0.0,null,null,null,0.0,null,null,null],[43300,541713,2032,0.0,null,null,null,0.0,null,null,null],[43300,541713,2033,0.0,null,null,null,0.0,null,null,null],[43300,541713,2034,0.0,null,null,null,0.0,null,null,null],[43300,541713,2035,0.0,null,null,null,0.0,null,null,null],[43300,541713,2036,0.0,null,null,null,0.0,null,null,null],[43300,541714,2001,0.0,0.0,0.0,0.0,0.0,null,null,null],[43300,541714,2002,0.0,0.0,0.0,0.0,0.0,null,null,null],[43300,541714,2003,0.0,0.0,0.0,0.0,0.0,null,null,null],[43300,541714,2004,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2005,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2006,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2007,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2008,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2009,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2010,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2011,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2012,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2013,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2014,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2015,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2016,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2017,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2018,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2019,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2020,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2021,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541714,2022,0.188,56186.663,6794.051,49392.611,0.002,null,null,0.5],[43300,541714,2023,0.987,69580.3,8579.862,61000.438,0.01,null,null,1.0],[43300,541714,2024,0.598,78127.78,9590.548,68537.232,0.006,null,null,1.0],[43300,541714,2025,0.169,75494.381,9267.286,66227.095,0.002,93.9,80398.702,0.5],[43300,541714,2026,0.26,null,null,null,0.003,null,null,null],[43300,541714,2027,0.336,null,null,null,0.003,null,null,null],[43300,541714,2028,0.399,null,null,null,0.004,null,null,null],[43300,541714,2029,0.455,null,null,null,0.004,null,null,null],[43300,541714,2030,0.488,null,null,null,0.004,null,null,null],[43300,541714,2031,0.485,null,null,null,0.004,null,null,null],[43300,541714,2032,0.483,null,null,null,0.004,null,null,null],[43300,541714,2033,0.48,null,null,null,0.004,null,null,null],[43300,541714,2034,0.477,null,null,null,0.004,null,null,null],[43300,541714,2035,0.475,null,null,null,0.004,null,null,null],[43300,541714,2036,0.472,null,null,null,0.004,null,null,null],[43300,541715,2001,0.551,104137.036,13630.145,90506.891,0.005,null,null,null],[43300,541715,2002,0.0,0.0,0.0,0.0,0.0,null,null,null],[43300,541715,2003,0.282,37826.548,5261.06,32565.488,0.003,null,null,null],[43300,541715,2004,2.068,58319.275,7698.801,50620.475,0.019,null,null,0.906],[43300,541715,2005,10.096,55806.818,7704.076,48102.742,0.088,null,null,2.183],[43300,541715,2006,10.762,53224.658,7388.78,45835.878,0.089,null,null,1.925],[43300,541715,2007,5.8,52079.336,6805.853,45273.483,0.049,null,null,0.931],[43300,541715,2008,10.256,51650.16,6646.17,45003.99,0.082,null,null,0.975],[43300,541715,2009,6.897,49390.372,6647.789,42742.583,0.054,null,null,0.734],[43300,541715,2010,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541715,2011,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541715,2012,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541715,2013,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541715,2014,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541715,2015,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541715,2016,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541715,2017,0.0,0.0,0.0,0.0,0.0,null,null,0.0],[43300,541715,2018,6.823,45004.71,5865.648,39139.062,0.052,null,null,1.0],[43300,541715,2019,5.319,52591.872,7022.561,45569.311,0.038,null,null,1.25],[43300,541715,2020,1.903,72594.042,9067.808,63526.234,0.012,null,null,1.0],[43300,541715,2021,6.765,52719.792,6417.907,46301.885,0.042,null,null,1.0],[43300,541715,2022,7.012,59957.043,7249.963,52707.08,0.043,null,null,1.0],[43300,541715,2023,7.318,68083.825,8395.333,59688.491,0.04,null,null,1.0],[43300,541715,2024,8.953,81388.556,9990.823,71397.733,0.049,null,null,1.0],[43300,541715,2025,6.725,98913.218,12142.056,86771.161,0.036,93.9,105338.89,1.5],[43300,541715,2026,7.07,null,null,null,0.036,null,null,null],[43300,541715,2027,7.347,null,null,null,0.037,null,null,null],[43300,541715,2028,7.577,null,null,null,0.037,null,null,null],[43300,541715,2029,7.771,null,null,null,0.037,null,null,null],[43300,541715,2030,7.87,null,null,null,0.038,null,null,null],[43300,541715,2031,8.029,null,null,null,0.038,null,null,null],[43300,541715,2032,8.168,null,null,null,0.038,null,null,null],[43300,541715,2033,8.29,null,null,null,0.038,null,null,null],[43300,541715,2034,8.394,null,null,null,0.038,null,null,null],[43300,541715,2035,8.484,null,null,null,0.038,null,null,null],[43300,541715,2036,8.561,null,null,null,0.038,null,null,null],[43300,621511,2001,0.0,0.0,0.0,0.0,0.0,null,null,null],[43300,621511,2002,0.882,197001.49,34324.024,162677.466,0.021,null,null,null],[43300,621511,2003,4.419,180556.482,33125.444,147431.038,0.105,null,null,null],[43300,621511,2004,3.551,124329.354,23237.872,101091.482,0.082,null,null,1.0],[43300,621511,2005,5.944,129687.263,24024.125,105663.138,0.136,null,null,1.0],[43300,621511,2006,6.108,205704.484,39154.15,166550.334,0.136,null,null,1.0],[43300,621511,2007,2.202,209813.891,37782.601,172031.29,0.049,null,null,1.0],[43300,621511,2008,1.024,140189.535,24631.205,115558.33,0.022,null,null,1.0],[43300,621511,2009,3.857,109436.887,19370.192,90066.695,0.079,null,null,1.0],[43300,621511,2010,5.994,95751.41,17687.959,78063.451,0.115,null,null,1.0],[43300,621511,2011,5.142,95810.563,16629.492,79181.072,0.096,null,null,1.0],[43300,621511,2012,5.459,133681.067,23033.717,110647.349,0.102,null,null,1.0],[43300,621511,2013,6.707,125977.832,22844.907,103132.926,0.118,null,null,1.0],[43300,621511,2014,9.096,171025.005,29886.199,141138.806,0.156,null,null,1.0],[43300,621511,2015,8.88,161586.778,27363.373,134223.405,0.146,null,null,1.5],[43300,621511,2016,18.659,105605.985,18397.39,87208.595,0.303,null,null,2.0],[43300,621511,2017,13.497,80351.932,13929.458,66422.474,0.216,null,null,2.75],[43300,621511,2018,25.25,64210.942,11650.982,52559.96,0.395,null,null,4.25],[43300,621511,2019,19.75,85431.632,15442.265,69989.367,0.299,null,null,4.0],[43300,621511,2020,16.75,93793.171,16892.394,76900.776,0.241,null,null,4.0],[43300,621511,2021,18.833,99441.144,17301.25,82139.894,0.249,null,null,4.0],[43300,621511,2022,26.583,101957.825,16682.326,85275.498,0.352,null,null,10.0],[43300,621511,2023,28.583,90840.766,14618.62,76222.146,0.368,null,null,12.0],[43300,621511,2024,30.167,84332.68,13435.719,70896.961,0.399,null,null,14.0],[43300,621511,2025,53.333,89426.352,14247.233,75179.119,0.704,93.9,95235.731,12.5],[43300,621511,2026,58.074,null,null,null,0.746,null,null,null],[43300,621511,2027,61.973,null,null,null,0.78,null,null,null],[43300,621511,2028,65.285,null,null,null,0.808,null,null,null],[43300,621511,2029,68.164,null,null,null,0.831,null,null,null],[43300,621511,2030,69.86,null,null,null,0.845,null,null,null],[43300,621511,2031,72.313,null,null,null,0.863,null,null,null],[43300,621511,2032,74.521,null,null,null,0.88,null,null,null],[43300,621511,2033,76.507,null,null,null,0.894,null,null,null],[43300,621511,2034,78.293,null,null,null,0.907,null,null,null],[43300,621511,2035,79.898,null,null,null,0.919,null,null,null],[43300,621511,2036,81.339,null,null,null,0.929,null,null,null]];
+const D=19100,S=43300;
+const AREAS={19100:'Dallas–Fort Worth',43300:'Sherman–Denison'},ACOL={19100:'var(--dfw)',43300:'var(--sd)'};
+const IND={541380:'Testing laboratories',541713:'Nanotechnology R&D',541714:'Biotechnology R&D',541715:'Physical, engineering and life-science R&D',621511:'Medical laboratories'};
+const SH={541380:'Testing labs',541713:'Nanotech R&D',541714:'Biotech R&D',541715:'Phys./eng./life-sci R&D',621511:'Medical labs'};
+const INDS=Object.keys(IND).map(Number);
+const $=id=>document.getElementById(id);
+const fmt=n=>n==null||!isFinite(n)?'–':Math.round(n).toLocaleString('en-US');
+const usd=n=>n==null||!isFinite(n)?'–':'$'+fmt(n);
+const idx={};RAW.forEach(r=>idx[r[0]+'|'+r[1]+'|'+r[2]]=r);
+const g=(a,i,y,k)=>{const r=idx[a+'|'+i+'|'+y];return r?r[k]:null};
+const st={area:'all',ind:'all',from:2021,to:2025,lens:'exec'};
+const ARS=()=>st.area=='all'?[D,S]:[+st.area];
+const IDS=()=>st.ind=='all'?INDS:[+st.ind];
+const sum=(ar,ii,y,k)=>{let s=0;ar.forEach(a=>ii.forEach(i=>s+=g(a,i,y,k)||0));return s};
+const jobs=(y,ar=ARS(),ii=IDS())=>sum(ar,ii,y,3),est=(y,ar=ARS(),ii=IDS())=>sum(ar,ii,y,10);
+const ch=(a,b)=>b>0?a/b-1:null;
+const dl=(p,t='')=>p==null?'<em class="fl">n/a</em>':`<em class="${p>=0.0005?'up':p<=-0.0005?'dn':'fl'}">${p>=0.0005?'▲':p<=-0.0005?'▼':'■'} ${Math.abs(p*100).toFixed(1)}%${t}</em>`;
+const wavg=(k,ar,ii)=>{let n=0,d=0;ar.forEach(a=>ii.forEach(i=>{const v=g(a,i,2025,k),j=g(a,i,2025,3);if(v>0&&j>0){n+=v*j;d+=j}}));return d?n/d:null};
+
+/* filters */
+const yrOpts=(sel)=>{let s='';for(let y=2001;y<=2036;y++)s+=`<option value="${y}"${y==sel?' selected':''}>${y}${y>2025?' (proj.)':''}</option>`;return s};
+const LENS={exec:'Executive',inv:'Investors and capital',tal:'Talent and workforce',pol:'Economic development and policy'};
+function filters(){$('filters').innerHTML=
+`<label>Market<select id="fa"><option value="all">Both North Texas markets</option><option value="19100">Dallas–Fort Worth (19100)</option><option value="43300">Sherman–Denison (43300)</option></select></label>
+<label>Industry<select id="fi"><option value="all">All five industries</option>${INDS.map(i=>`<option value="${i}">${IND[i]}</option>`).join('')}</select></label>
+<label>Start year<select id="ff">${yrOpts(st.from)}</select></label>
+<label>End year<select id="ft">${yrOpts(st.to)}</select></label>
+<label>Stakeholder view<select id="fl">${Object.keys(LENS).map(k=>`<option value="${k}">${LENS[k]}</option>`).join('')}</select></label>
+<button class="reset" id="rs">Reset filters</button>`;
+ $('fa').value=st.area;$('fi').value=st.ind;$('fl').value=st.lens;
+ $('fa').onchange=e=>{st.area=e.target.value;go()};$('fi').onchange=e=>{st.ind=e.target.value;go()};$('fl').onchange=e=>{st.lens=e.target.value;go()};
+ $('ff').onchange=e=>{st.from=+e.target.value;if(st.from>=st.to)st.to=Math.min(2036,st.from+1);if(st.from>=st.to)st.from=st.to-1;filters();go()};
+ $('ft').onchange=e=>{st.to=+e.target.value;if(st.from>=st.to)st.from=Math.max(2001,st.to-1);filters();go()};
+ $('rs').onclick=()=>{Object.assign(st,{area:'all',ind:'all',from:2021,to:2025,lens:'exec'});filters();go()}}
+
+/* charts */
+function line(el,rd,series,o){
+ const W=640,H=250,P={l:54,r:10,t:10,b:26};const xs=[],ys=[];series.forEach(s=>s.pts.forEach(p=>{xs.push(p[0]);ys.push(p[1])}));
+ if(!xs.length||xs.length<2){$(el).innerHTML='<p class="note">Not enough years in the selected range for this chart.</p>';$(rd).textContent='';return}
+ const x0=Math.min(...xs),x1=Math.max(...xs);const y0=o.y0??0;let y1=Math.max(...ys,o.ref||0)*1.08;if(y1<=y0)y1=y0+1;
+ const X=x=>P.l+(x-x0)/(x1-x0)*(W-P.l-P.r),Y=y=>H-P.b-(y-y0)/(y1-y0)*(H-P.t-P.b);
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.label}"><text x="4" y="${P.t+4}" font-size="11" fill="var(--mut)">${o.unit}</text>`;
+ for(let t=0;t<=4;t++){const v=y0+(y1-y0)*t/4;s+=`<line x1="${P.l}" x2="${W-P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${P.l-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--mut)">${o.yf(v)}</text>`}
+ const step=(x1-x0)>20?5:(x1-x0)>8?2:1;for(let x=Math.ceil(x0/step)*step;x<=x1;x+=step)s+=`<text x="${X(x)}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--mut)">${x}</text>`;
+ if(o.proj!=null&&o.proj<x1){const a=Math.max(o.proj,x0);s+=`<rect x="${X(a)}" y="${P.t}" width="${X(x1)-X(a)}" height="${H-P.t-P.b}" fill="var(--gold)" opacity=".1"/><text x="${X(a)+4}" y="${H-P.b-5}" font-size="11" fill="var(--gold)">projected</text>`}
+ if(o.ref)s+=`<line x1="${P.l}" x2="${W-P.r}" y1="${Y(o.ref)}" y2="${Y(o.ref)}" stroke="var(--mut)" stroke-dasharray="2 3"/>`;
+ series.forEach(se=>{const pr=o.proj;const d=q=>q.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('');
+  const a=pr==null?se.pts:se.pts.filter(p=>p[0]<=pr),b=pr==null?[]:se.pts.filter(p=>p[0]>=pr);
+  if(a.length>1)s+=`<path d="${d(a)}" fill="none" stroke="${se.color}" stroke-width="2.5"/>`;if(b.length>1)s+=`<path d="${d(b)}" fill="none" stroke="${se.color}" stroke-width="2.5" stroke-dasharray="6 4"/>`;
+  const l=se.pts[se.pts.length-1];s+=`<circle cx="${X(l[0])}" cy="${Y(l[1])}" r="3.5" fill="${se.color}"/>`});
+ s+=`<line y1="${P.t}" y2="${H-P.b}" stroke="var(--ink)" opacity="0"/></svg>`;$(el).innerHTML=s;
+ const svg=$(el).firstChild,v=svg.querySelector('line:last-child');
+ const mv=e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*W;let yr=Math.round(x0+(px-P.l)/(W-P.l-P.r)*(x1-x0));yr=Math.max(x0,Math.min(x1,yr));
+  v.setAttribute('x1',X(yr));v.setAttribute('x2',X(yr));v.setAttribute('opacity',.4);
+  $(rd).innerHTML=`<b>${yr}</b>${o.proj!=null&&yr>o.proj?' (projected)':''}: `+series.map(se=>{const p=se.pts.find(q=>q[0]==yr);return `${se.name} ${p?o.vf(p[1]):'–'}`}).join(' · ')};
+ svg.addEventListener('pointermove',mv);svg.addEventListener('pointerdown',mv);$(rd).textContent='Hover or tap the chart to read a year.'}
+const yrs=(a,b)=>{const r=[];for(let y=a;y<=b;y++)r.push(y);return r};
+const leg=ar=>ar.map(a=>`<span><i style="background:${ACOL[a]}"></i>${AREAS[a]}</span>`).join('');
+function bars(el,items,f){const mx=Math.max(...items.map(i=>i.v),1);$(el).innerHTML=items.length?items.map(i=>`<div class="br"><span>${i.l}</span><div class="bt">${(i.seg||[{v:i.v,c:i.c}]).map(s=>`<i style="width:${s.v/mx*100}%;background:${s.c};opacity:${s.o||1}"></i>`).join('')}</div><b>${f(i)}</b></div>`).join(''):'<p class="note">No data for this selection.</p>'}
+
+function go(){
+ const ar=ARS(),ii=IDS(),{from,to}=st,e25=Math.min(to,2025),f25=Math.max(Math.min(from,2025),2004);
+ const aN=ar.length==2?'North Texas':AREAS[ar[0]];
+ /* KPIs */
+ const j1=jobs(to),j0=jobs(from),n1=est(e25),n0=est(f25),net=jobs(2036)-jobs(2025);
+ const cagr=j0>0&&j1>0?Math.pow(j1/j0,1/(to-from))-1:null;
+ const col=wavg(9,ar,ii),earn=wavg(4,ar,ii),sup=wavg(5,ar,ii);
+ const K=[['Jobs, '+to+(to>2025?' (proj.)':''),fmt(j1),dl(ch(j1,j0),' vs '+from)],
+ ['Jobs a year, compound growth',cagr==null?'–':(cagr*100).toFixed(1)+'%',`<em class="fl">${from}–${to}</em>`],
+ ['Establishments, '+e25,fmt(n1),dl(f25<e25?ch(n1,n0):null,' vs '+f25)],
+ ['Jobs per establishment, '+e25,n1?(jobs(e25)/n1).toFixed(1):'–',dl(n0&&n1&&f25<e25?(jobs(e25)/n1)/(jobs(f25)/n0)-1:null,' vs '+f25)],
+ ['Net new jobs, 2025–2036 (proj.)',(net>=0?'+':'')+fmt(net),`<em class="fl">${aN}</em>`],
+ ['COL-adjusted earnings, 2025',usd(col),`<em class="fl">raw ${usd(earn)}</em>`],
+ ['Benefit supplements, 2025',usd(sup),`<em class="fl">${sup&&earn?(sup/earn*100).toFixed(1)+'% of earnings':'–'}</em>`]];
+ $('kpis').innerHTML=K.map(k=>`<div class="k" style="border-top-color:${ar.length==1?ACOL[ar[0]]:'var(--ink)'}"><span>${k[0]}</span><b>${k[1]}</b>${k[2]}</div>`).join('');
+ /* summaries */
+ const sz0=n0?jobs(f25)/n0:null,sz1=n1?jobs(e25)/n1:null;
+ const iN=st.ind=='all'?'core R&D and lab':SH[st.ind].toLowerCase().replace('r&d','R&D');
+ const bigI=ii.map(i=>({i,n:jobs(2036,ar,[i])-jobs(2025,ar,[i])})).sort((a,b)=>b.n-a.n)[0];
+ const xs=ar.length==2?`DFW holds ${fmt(jobs(to,[D]))} of ${fmt(j1)} jobs; Sherman–Denison ${fmt(jobs(to,[S]))}.`:'';
+ const T=[['Employment',j0==0&&j1==0?`No ${iN} jobs are recorded for ${aN} in this range.`:`${aN} ${iN} jobs ${j1>=j0?'rose':'fell'} from ${fmt(j0)} in ${from} to ${fmt(j1)} in ${to}${to>2025?' (projected)':''}. ${xs}`],
+ ['Business formation',n0&&n1&&f25>=e25?`Establishment data end in 2025: ${fmt(n1)} sites averaging ${sz1.toFixed(1)} jobs.`:n0&&n1?`Establishments went from ${fmt(n0)} to ${fmt(n1)} (${f25}–${e25}); average size moved from ${sz0.toFixed(1)} to ${sz1.toFixed(1)} jobs, ${sz1<sz0?'pointing to more small operators':'pointing to larger sites'}.`:'No establishment data for this selection and range.'],
+ ['Talent and pay',col?`COL-adjusted earnings average ${usd(col)}; supplements add ${usd(sup)} per worker. Projected hiring need to 2036: ${net>=0?'+':''}${fmt(net)} jobs${bigI&&bigI.n>0?`, led by ${SH[bigI.i].toLowerCase()} (+${fmt(bigI.n)})`:''}.`:'No pay data for this selection.'],
+ ['Outlook',`Lightcast projects ${fmt(jobs(2036))} jobs in 2036, ${(()=>{const p=ch(jobs(2036),jobs(2025));return p==null?'from no 2025 base':(p>=0?'+':'')+(p*100).toFixed(1)+'% vs 2025'})()}. Sherman–Denison’s growth is large in percent but based on 69 jobs.`]];
+ $('sum').innerHTML=T.map(t=>`<div><h3>${t[0]}</h3><p>${t[1]}</p></div>`).join('');
+ /* levels */
+ $('t1').textContent=`Jobs, ${from}–${to}`;
+ $('lvl').innerHTML=ar.map(a=>`<div><h3 style="color:${ACOL[a]}">${AREAS[a]}</h3><div id="lv${a}"></div><div class="rd" id="rl${a}"></div></div>`).join('');
+ ar.forEach(a=>line('lv'+a,'rl'+a,[{name:'Jobs',color:ACOL[a],pts:yrs(from,to).map(y=>[y,jobs(y,[a])])}],{proj:2025,unit:'Jobs',yf:fmt,vf:fmt,label:'Jobs in '+AREAS[a]}));
+ /* index */
+ $('lg1').innerHTML=leg(ar);
+ const ser=ar.map(a=>{const b=jobs(from,[a]);return {name:AREAS[a],color:ACOL[a],pts:b>0?yrs(from,to).map(y=>[y,jobs(y,[a])/b*100]):[]}}).filter(s=>s.pts.length);
+ const mn=Math.min(100,...ser.flatMap(s=>s.pts.map(p=>p[1])));
+ line('c-idx','r-idx',ser,{proj:2025,y0:Math.floor(mn*.9/10)*10,ref:100,unit:`Index, ${from} = 100`,yf:n=>n.toFixed(0),vf:n=>n.toFixed(0),label:'Jobs growth index'});
+ /* size */
+ $('lg2').innerHTML=leg(ar);
+ const y2=yrs(Math.max(from,2004),Math.min(to,2025));
+ line('c-sz','r-sz',ar.map(a=>({name:AREAS[a],color:ACOL[a],pts:y2.filter(y=>est(y,[a])>0).map(y=>[y,jobs(y,[a])/est(y,[a])])})).filter(s=>s.pts.length),{y0:0,unit:'Jobs per establishment',yf:n=>n.toFixed(0),vf:n=>n.toFixed(1),label:'Jobs per establishment'});
+ /* rank */
+ $('t3').textContent=`Jobs by industry, ${to}`;
+ const rk=ii.map(i=>({l:SH[i],v:jobs(to,ar,[i]),p:ch(jobs(to,ar,[i]),jobs(from,ar,[i])),c:ar.length==1?ACOL[ar[0]]:'var(--dfw)'})).sort((a,b)=>b.v-a.v);
+ bars('rank',rk,i=>`${fmt(i.v)} ${dl(i.p)}`);
+ /* net */
+ const nt=ii.map(i=>({l:SH[i],v:Math.max(0,jobs(2036,ar,[i])-jobs(2025,ar,[i])),r:jobs(2036,ar,[i])-jobs(2025,ar,[i]),c:ar.length==1?ACOL[ar[0]]:'var(--dfw)'})).sort((a,b)=>b.r-a.r);
+ bars('net',nt,i=>(i.r>=0?'+':'')+fmt(i.r));
+ $('netnote').textContent=ar.length==2?`DFW ${fmt(jobs(2036,[D])-jobs(2025,[D]))} plus Sherman–Denison ${fmt(jobs(2036,[S])-jobs(2025,[S]))}, ${fmt(net)} in total.`:'';
+ /* pay */
+ const pr=[];ar.forEach(a=>ii.forEach(i=>{const e=g(a,i,2025,4);if(e>0)pr.push({l:`${SH[i]}${ar.length>1?' · '+(a==D?'DFW':'S–D'):''}`,w:g(a,i,2025,6),s:g(a,i,2025,5),v:e,ca:g(a,i,2025,9),c:ACOL[a]})}));
+ pr.sort((a,b)=>b.ca-a.ca);
+ bars('pay',pr.map(p=>({l:p.l,v:p.v,seg:[{v:p.w,c:p.c},{v:p.s,c:'var(--gold)',o:.7}],ca:p.ca,e:p.v})),i=>`${usd(i.e)} <span class="fl">| ${usd(i.ca)}</span>`);
+ $('pay').insertAdjacentHTML('afterbegin','<div class="br" style="color:var(--mut);font-size:12px"><span>Industry</span><span>Wages + supplements</span><b>Earnings | COL-adj.</b></div>');
+ /* actions */
+ const ctx={aN,j1,j0,net,col,sup,earn,sz0,sz1,fe:f25<e25?ch(n1,n0):null,fj:ch(j1,j0)};
+ const A=act(ctx);$('act').innerHTML=`<div><h2>${A.h}</h2><ul>${A.b.map(x=>`<li>${x}</li>`).join('')}</ul></div><div><h3>Recommended actions</h3><ol>${A.a.map(x=>`<li>${x}</li>`).join('')}</ol></div>`;
+ filt()}
+
+function act(c){const p=v=>v==null?'n/a':(v*100).toFixed(1)+'%';
+ const sd=(g(S,541380,2025,3)||0)+0;
+ const L={
+ exec:{h:`Executive view: ${c.aN}`,b:[`Jobs changed ${p(c.fj)} and establishments ${p(c.fe)} over the selected period.`,`Projected net new jobs to 2036: ${fmt(c.net)}.`,`COL-adjusted earnings average ${usd(c.col)}.`],a:['Monitor jobs per establishment as an early signal of startup formation.','Treat Sherman–Denison as a watch item until it passes about 200 jobs.','Refresh the view when Lightcast updates its projections.']},
+ inv:{h:'Investors and capital allocation',b:[`Establishment growth of ${p(c.fe)} versus job growth of ${p(c.fj)}: ${c.sz1<c.sz0?'sites are getting smaller, consistent with startup formation':'sites are getting larger'}.`,'R&D industries pay about 60% more than testing and medical labs, a marker of higher-value work.','Texas is 4th in bioscience venture capital but has only 1,024 biomanufacturing jobs.'],a:['Screen early-stage biotech R&D and flexible lab space in DFW.','Pair capital with scale-up and contract manufacturing, where Texas is thin.','Use Sherman–Denison only for low-cost satellite sites.']},
+ tal:{h:'Talent management and workforce',b:[`${fmt(c.net)} net new jobs projected to 2036.`,`Supplements average ${usd(c.sup)} per worker: a lever for total-reward offers.`,'Sherman–Denison’s lower living costs stretch pay about 6.5% further than the national baseline, versus 0.9% in DFW.'],a:['Build technician and lab-support pipelines for the largest growth industry first.','Benchmark R&amp;D offers on COL-adjusted pay and benefits, not salary alone.','Offer hybrid sites in Sherman–Denison for cost-sensitive talent.']},
+ pol:{h:'Economic development and policy',b:['Texas ranks 3rd in academic bioscience R&amp;D, 6th in NIH funding and 2nd in clinical trials.','Biomanufacturing jobs fell 27.1% since 2021, versus North Carolina’s +29.2% to 6,816 jobs.',`Demand of ${fmt(c.net)} jobs by 2036 needs training capacity now.`],a:['Fund community-college biomanufacturing certificates modeled on North Carolina’s BioWork.','Link Sherman–Denison employers to DFW research institutions.','Offer site-readiness incentives to move discoveries into production.']}};
+ return L[st.lens]}
+
+$('tx').innerHTML=[['$5.56B','Academic bioscience R&D, 2024 (3rd in US)'],['$1.89B','NIH funding, FY2025 (6th)'],['13,742','Active clinical trials, 2021–25 (2nd)'],['7,062','Bioscience patents, 2021–25 (8th)'],['$11.1B','Bioscience venture capital, 2021–25 (4th)'],['1,024','Biomanufacturing jobs; −27.1% since 2021; LQ 0.24']].map(t=>`<div><b>${t[0]}</b><span>${t[1]}</span></div>`).join('');
+
+/* explorer (follows filters) */
+const COLS=['Market','Industry','Year','Jobs','Earnings','Supplements','Wages','Concentration','COL index','COL-adj. earnings','Establishments'];
+let sc=2,sd=1,pg=0,view=[];const PS=25;
+const cell=(r,c)=>c==0?AREAS[r[0]]:c==1?SH[r[1]]:c==2?r[2]:r[c]==null?'–':c==7?r[7].toFixed(2):c==8?r[8].toFixed(1):fmt(r[c]);
+function filt(){const q=$('q').value.toLowerCase();
+ view=RAW.filter(r=>ARS().includes(r[0])&&IDS().includes(r[1])&&r[2]>=st.from&&r[2]<=st.to&&(!q||(AREAS[r[0]]+' '+IND[r[1]]+' '+r[2]).toLowerCase().includes(q)));
+ view.sort((x,y)=>{const f=r=>sc==0?AREAS[r[0]]:sc==1?SH[r[1]]:r[sc];const u=f(x),v=f(y);return ((u==null)-(v==null))||(u>v?1:u<v?-1:0)*sd});pg=0;draw()}
+function draw(){const n=view.length,pages=Math.max(1,Math.ceil(n/PS));
+ $('exsub').textContent=`${n} of ${RAW.length} Lightcast rows match the filters above (set start 2001 and end 2036 with both markets and all industries to see all 360). Earnings and establishments are actuals through 2025.`;
+ $('ex').innerHTML='<tr>'+COLS.map((c,j)=>`<th data-c="${j}" tabindex="0" aria-sort="${sc==j?(sd>0?'ascending':'descending'):'none'}">${c}${sc==j?(sd>0?' ▲':' ▼'):''}</th>`).join('')+'</tr>'+view.slice(pg*PS,pg*PS+PS).map(r=>'<tr>'+COLS.map((c,j)=>`<td>${cell(r,j)}</td>`).join('')+'</tr>').join('');
+ $('pi').textContent=`Page ${pg+1} of ${pages}`;$('pp').disabled=pg==0;$('pn').disabled=pg>=pages-1;
+ $('ex').querySelectorAll('th').forEach(t=>{const h=()=>{const c=+t.dataset.c;sd=sc==c?-sd:1;sc=c;filt()};t.onclick=h;t.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();h()}}})}
+$('q').oninput=filt;$('pp').onclick=()=>{pg--;draw()};$('pn').onclick=()=>{pg++;draw()};
+$('exp').onclick=async()=>{const h=['Area code','Market','Industry code','Industry','Year','Jobs','Earnings per worker','Supplements per worker','Wages per worker','Employment concentration','COL index','COL adjusted earnings per worker','Establishments'];
+ const q=v=>/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
+ const csv=[h.join(',')].concat(view.map(r=>[r[0],AREAS[r[0]],r[1],IND[r[1]],...r.slice(2)].map(v=>q(v==null?'':String(v))).join(','))).join('\n');
+ $('csvta').value=csv;try{const d=await claude.use('downloads');if(d){await d.save({filename:'north-texas-biotech-filtered.csv',data:csv});return}}catch(e){}
+ $('csvbox').hidden=false;$('csvta').select()};
+filters();go();
+</script>
+</body>
+</html>
